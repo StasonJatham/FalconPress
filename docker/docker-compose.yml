@@ -38,6 +38,11 @@ services:
       - WORDPRESS_DB_USER="${MYSQL_USER}"
       - WORDPRESS_DB_PASSWORD="${MYSQL_PASSWORD}"
       - WORDPRESS_TABLE_PREFIX=kack_
+      - |
+        WORDPRESS_CONFIG_EXTRA=
+        define( 'WP_REDIS_HOST', 'falcon-cache' );
+        define( 'WP_REDIS_PORT', 6379 );
+        define( 'WP_REDIS_PASSWORD', '$${REDIS_HOST_PASSWORD}' );
     restart: unless-stopped
 
   falcon-web:
