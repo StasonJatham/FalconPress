@@ -4,7 +4,6 @@ services:
     image: mariadb:latest
     restart: unless-stopped
     env_file:
-      - ../configs/.db.env
       - ../configs/.env
     volumes:
       - "${PERSISTENT_DATA}/mariadb/:/var/lib/mysq"
@@ -23,7 +22,6 @@ services:
     depends_on:
       - "falcon-db"
     env_file:
-      - ../configs/.cache.env
       - ../configs/.env
     volumes:
       - ${PERSISTENT_DATA}/redis:/data
@@ -38,7 +36,6 @@ services:
       - "falcon-db"
       - "falcon-cache"
     env_file:
-      - ../configs/.db.env
       - ../configs/.env
     environment:
       - WORDPRESS_DB_HOST=falcon-db
