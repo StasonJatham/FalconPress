@@ -3,8 +3,6 @@ services:
   falcon-db:
     image: mariadb:latest
     restart: unless-stopped
-    env_file:
-      - ../configs/.env
     volumes:
       - "${PERSISTENT_DATA}/mariadb/:/var/lib/mysq"
       - "${LOG_PATH}/mariadb/:/var/log/mysql"
@@ -21,8 +19,6 @@ services:
     restart: unless-stopped
     depends_on:
       - "falcon-db"
-    env_file:
-      - ../configs/.env
     volumes:
       - ${PERSISTENT_DATA}/redis:/data
     command: redis-server --requirepass $${REDIS_HOST_PASSWORD}
@@ -35,8 +31,6 @@ services:
     depends_on:
       - "falcon-db"
       - "falcon-cache"
-    env_file:
-      - ../configs/.env
     environment:
       - WORDPRESS_DB_HOST=falcon-db
       - MYSQL_ROOT_PASSWORD="${MYSQL_ROOT_PASSWORD}"
@@ -52,8 +46,6 @@ services:
       - "falconpress"
       - "falcon-db"
       - "falcon-cache"
-    env_file:
-      - ../configs/.env
     volumes:
       - ../configs/nginx:/etc/nginx/conf.d
       - ${LOG_PATH}/nginx:/var/log/nginx
