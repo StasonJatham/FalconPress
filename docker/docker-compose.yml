@@ -1,0 +1,59 @@
+version: "3.8"
+services:
+  falcon-db:
+    image: mariadb:latest
+    restart: unless-stopped
+    env_file:
+      - ../configs/.db.env
+    volumes:
+      - $PERSISTENT_DATA/mariadb/:${MARIADB_DATA_DIR}"
+      - $LOG_PATH/mariadb/:${MARIADB_LOG_DIR}"
+      - ../configs/mariadb/:/etc/mysql
+    environment:
+        MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+        MYSQL_DATABASE: "${MYSQL_DATABASE}"
+        MYSQL_USER: "${MYSQL_USER}"
+        MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
+
+  falcon-cache:
+    image: redis:latest
+    restart: unless-stopped
+    depends_on:
+      - "falcon-db"
+    env_file:
+      - ../configs/.cache.env
+    volumes:
+      - $PERSISTENT_DATA/redis:/data
+    command: /bin/sh -c "redis-server --requirepass $$REDIS_HOST_PASSWORD"
+
+  falconpress:
+    image: wordpress:php8.1-fpm-alpine
+    volumes:
+      - $STATIC_ROOT:/var/www/html
+      - ..configs/z-update-php-memory-limit.ini:/usr/local/etc/php/conf.d/z-update-php-memory-limit.ini
+    depends_on:
+      - "falcon-db"
+      - "falcon-cache"
+    env_file:
+      - ../configs/.db.env
+    environment:
+      WORDPRESS_DB_HOST: falcon-db
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+      WORDPRESS_DB_NAME: "${MYSQL_DATABASE}"
+      WORDPRESS_DB_USER: "${MYSQL_USER}"
+      WORDPRESS_DB_PASSWORD: "${MYSQL_PASSWORD}"
+      WORDPRESS_TABLE_PREFIX: wp_
+    restart: unless-stopped
+
+  falcon-web:
+    image: nginx:latest
+    depends_on:
+      - "falconpress"
+      - "falcon-db"
+      - "falcon-cache"
+    volumes:
+      - ../configs/nginx.conf:/etc/nginx/conf.d
+      - $LOG_PATH/nginx:/var/log/nginx
+      - $STATIC_ROOT:/var/www/html
+    ports:
+      - 8080:80
