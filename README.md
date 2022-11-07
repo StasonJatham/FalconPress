@@ -22,9 +22,6 @@ services:
   falcon-db:
     image: mariadb:latest
     restart: unless-stopped
-    env_file:
-      - ../configs/.db.env
-      - ../configs/.env
     volumes:
       - "${PERSISTENT_DATA}/mariadb/:/var/lib/mysq"
       - "${LOG_PATH}/mariadb/:/var/log/mysql"
@@ -41,9 +38,6 @@ services:
     restart: unless-stopped
     depends_on:
       - "falcon-db"
-    env_file:
-      - ../configs/.cache.env
-      - ../configs/.env
     volumes:
       - ${PERSISTENT_DATA}/redis:/data
     command: redis-server --requirepass $${REDIS_HOST_PASSWORD}
@@ -56,9 +50,6 @@ services:
     depends_on:
       - "falcon-db"
       - "falcon-cache"
-    env_file:
-      - ../configs/.db.env
-      - ../configs/.env
     environment:
       - WORDPRESS_DB_HOST=falcon-db
       - MYSQL_ROOT_PASSWORD="${MYSQL_ROOT_PASSWORD}"
@@ -66,6 +57,11 @@ services:
       - WORDPRESS_DB_USER="${MYSQL_USER}"
       - WORDPRESS_DB_PASSWORD="${MYSQL_PASSWORD}"
       - WORDPRESS_TABLE_PREFIX=kack_
+      - |
+        WORDPRESS_CONFIG_EXTRA=
+        define( 'WP_REDIS_HOST', 'falcon-cache' );
+        define( 'WP_REDIS_PORT', 6379 );
+        define( 'WP_REDIS_PASSWORD', '$${REDIS_HOST_PASSWORD}' );
     restart: unless-stopped
 
   falcon-web:
@@ -74,13 +70,10 @@ services:
       - "falconpress"
       - "falcon-db"
       - "falcon-cache"
-    env_file:
-      - ../configs/.env
     volumes:
       - ../configs/nginx:/etc/nginx/conf.d
       - ${LOG_PATH}/nginx:/var/log/nginx
       - ${STATIC_ROOT}:/var/www/html
     ports:
       - 8080:80
-
 ```
