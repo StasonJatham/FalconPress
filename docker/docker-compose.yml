@@ -4,7 +4,7 @@ services:
     image: mariadb:latest
     restart: unless-stopped
     volumes:
-      - "${PERSISTENT_DATA}/mariadb/:/var/lib/mysq"
+      - "${PERSISTENT_DATA}/mariadb/:/var/lib/mysql"
       - "${LOG_PATH}/mariadb/:/var/log/mysql"
       - ../configs/mariadb/:/etc/mysql
     environment:
@@ -27,7 +27,7 @@ services:
     image: wordpress:php8.1-fpm-alpine
     volumes:
       - ${STATIC_ROOT}:/var/www/html
-      - ../configs/z-update-php-mem-limit.ini:/usr/local/etc/php/conf.d/z-update-php-memory-limit.ini
+      - ../configs/falconpress/z-update-php-mem-limit.ini:/usr/local/etc/php/conf.d/z-update-php-memory-limit.ini
     depends_on:
       - "falcon-db"
       - "falcon-cache"

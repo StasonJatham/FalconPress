@@ -2,6 +2,13 @@
 
 Deploy WordPress with the highest performance options currently possible, in Docker-Compose.
 
+## TODO
+ - [ ] add reverse proxy
+ - [ ] do something with the logs (ingest them somewhere)
+ - [ ] add hardware/server reource monitoring
+ - [ ] set up caching plugins on install
+ - [ ] add watchtowerrr for automatic updating
+
 ## MariaDB
 Better performance than MySQL.
 
@@ -77,3 +84,7 @@ services:
     ports:
       - 8080:80
 ```
+
+# Future
+- [ ] Add custom FalconCache Plugin (handles CDN, Cloudflare, Nginx everythng)
+- [ ] Add custom FalconTheme
