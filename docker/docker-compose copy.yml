@@ -5,12 +5,12 @@ services:
     restart: unless-stopped
     volumes:
       - ${PERSISTENT_DATA}/${WORDPRESS_DB_HOST}/:/var/lib/mysql
-      - ${LOG_PATH}/${WORDPRESS_DB_HOST}/general-log.log:/var/lib/mysql/general-log.log
+      - ${LOG_PATH}/${WORDPRESS_DB_HOST}/:/var/log/mysql
     environment:
-      - MARIADB_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-      - MYSQL_DATABASE=${MYSQL_DATABASE}
-      - MYSQL_USER=${MYSQL_USER}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MARIADB_ROOT_PASSWORD="${MYSQL_ROOT_PASSWORD}"
+      - MYSQL_DATABASE="${MYSQL_DATABASE}"
+      - MYSQL_USER="${MYSQL_USER}"
+      - MYSQL_PASSWORD="${MYSQL_PASSWORD}"
     command: mysqld --general-log=1 --general-log-file=/var/lib/mysql/general-log.log
 
   falcon-cache:
@@ -31,17 +31,17 @@ services:
       - "falcon-db"
       - "falcon-cache"
     environment:
-      - WORDPRESS_DB_HOST=${WORDPRESS_DB_HOST}
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-      - WORDPRESS_DB_NAME=${MYSQL_DATABASE}
-      - WORDPRESS_DB_USER=${MYSQL_USER}
-      - WORDPRESS_DB_PASSWORD=${MYSQL_PASSWORD}
-      - WORDPRESS_TABLE_PREFIX=${WORDPRESS_TABLE_PREFIX}
-      - |
-        WORDPRESS_CONFIG_EXTRA=
-        define( 'WP_REDIS_HOST', '$${REDIS_HOST}' );
-        define( 'WP_REDIS_PORT', 6379 );
-        define( 'WP_REDIS_PASSWORD', '$${REDIS_HOST_PASSWORD}' );
+      - WORDPRESS_DB_HOST="${WORDPRESS_DB_HOST}"
+      #- MYSQL_ROOT_PASSWORD="${MYSQL_ROOT_PASSWORD}"
+      #- WORDPRESS_DB_NAME="${MYSQL_DATABASE}"
+      #- WORDPRESS_DB_USER="${MYSQL_USER}"
+      #- WORDPRESS_DB_PASSWORD="${MYSQL_PASSWORD}"
+      #- WORDPRESS_TABLE_PREFIX="${WORDPRESS_TABLE_PREFIX}"
+      #- |
+      #  WORDPRESS_CONFIG_EXTRA=
+      #  define( 'WP_REDIS_HOST', '$${REDIS_HOST}' );
+      #  define( 'WP_REDIS_PORT', 6379 );
+      #  define( 'WP_REDIS_PASSWORD', '$${REDIS_HOST_PASSWORD}' );
     restart: unless-stopped
 
   falcon-web:

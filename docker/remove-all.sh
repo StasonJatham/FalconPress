@@ -1,0 +1,1 @@
+echo $PERSISTENT_DATA
