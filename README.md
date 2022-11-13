@@ -8,6 +8,11 @@ Deploy WordPress with the highest performance options currently possible, in Doc
  - [ ] add hardware/server reource monitoring
  - [ ] set up caching plugins on install
  - [ ] add watchtowerrr for automatic updating
+ - [ ] better log structure
+
+ ## Bugs
+ - logging not working correctly so far
+
 
 ## MariaDB
 Better performance than MySQL.
@@ -30,14 +35,13 @@ services:
     image: mariadb:latest
     restart: unless-stopped
     volumes:
-      - "${PERSISTENT_DATA}/mariadb/:/var/lib/mysq"
-      - "${LOG_PATH}/mariadb/:/var/log/mysql"
-      - ../configs/mariadb/:/etc/mysql
+      - ${PERSISTENT_DATA}/${WORDPRESS_DB_HOST}/:/var/lib/mysql
+      - ${LOG_PATH}/${WORDPRESS_DB_HOST}/general-log.log:/var/lib/mysql/general-log.log
     environment:
-      - MARIADB_ROOT_PASSWORD="${MYSQL_ROOT_PASSWORD}"
-      - MYSQL_DATABASE="${MYSQL_DATABASE}"
-      - MYSQL_USER="${MYSQL_USER}"
-      - MYSQL_PASSWORD="${MYSQL_PASSWORD}"
+      - MARIADB_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
     command: mysqld --general-log=1 --general-log-file=/var/lib/mysql/general-log.log
 
   falcon-cache:
@@ -46,27 +50,27 @@ services:
     depends_on:
       - "falcon-db"
     volumes:
-      - ${PERSISTENT_DATA}/redis:/data
+      - ${PERSISTENT_DATA}/${REDIS_HOST}:/data
     command: redis-server --requirepass $${REDIS_HOST_PASSWORD}
 
   falconpress:
-    image: wordpress:php8.1-fpm-alpine
+    image: "wordpress:${WORDPRESS_VERSION}"
     volumes:
       - ${STATIC_ROOT}:/var/www/html
-      - ../configs/z-update-php-mem-limit.ini:/usr/local/etc/php/conf.d/z-update-php-memory-limit.ini
+      - ${CONFIG_DIR}/falconpress/z-update-php-mem-limit.ini:/usr/local/etc/php/conf.d/z-update-php-memory-limit.ini
     depends_on:
       - "falcon-db"
       - "falcon-cache"
     environment:
-      - WORDPRESS_DB_HOST=falcon-db
-      - MYSQL_ROOT_PASSWORD="${MYSQL_ROOT_PASSWORD}"
-      - WORDPRESS_DB_NAME="${MYSQL_DATABASE}"
-      - WORDPRESS_DB_USER="${MYSQL_USER}"
-      - WORDPRESS_DB_PASSWORD="${MYSQL_PASSWORD}"
-      - WORDPRESS_TABLE_PREFIX=kack_
+      - WORDPRESS_DB_HOST=${WORDPRESS_DB_HOST}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - WORDPRESS_DB_NAME=${MYSQL_DATABASE}
+      - WORDPRESS_DB_USER=${MYSQL_USER}
+      - WORDPRESS_DB_PASSWORD=${MYSQL_PASSWORD}
+      - WORDPRESS_TABLE_PREFIX=${WORDPRESS_TABLE_PREFIX}
       - |
         WORDPRESS_CONFIG_EXTRA=
-        define( 'WP_REDIS_HOST', 'falcon-cache' );
+        define( 'WP_REDIS_HOST', '$${REDIS_HOST}' );
         define( 'WP_REDIS_PORT', 6379 );
         define( 'WP_REDIS_PASSWORD', '$${REDIS_HOST_PASSWORD}' );
     restart: unless-stopped
@@ -78,7 +82,7 @@ services:
       - "falcon-db"
       - "falcon-cache"
     volumes:
-      - ../configs/nginx:/etc/nginx/conf.d
+      - ${CONFIG_DIR}/nginx:/etc/nginx/conf.d
       - ${LOG_PATH}/nginx:/var/log/nginx
       - ${STATIC_ROOT}:/var/www/html
     ports:
@@ -88,3 +92,5 @@ services:
 # Future
 - [ ] Add custom FalconCache Plugin (handles CDN, Cloudflare, Nginx everythng)
 - [ ] Add custom FalconTheme
+- [ ] Add static site generation (Nextjs/Gatsby or maybe standard?)
+
